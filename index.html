@@ -35,6 +35,10 @@ TESTING INTERFACE
 <input type="button" id="decrement_button" value="-" />
 </form>
 
+<form>
+<input type="button" id="door_toggle_button" value="Toggle Door" />
+</form>
+
 <script>
 function Cell( start = 3, min = 0, max = 8 )
 {
@@ -93,7 +97,28 @@ function init()
 		c.fillText( cells.length, 10, 30 );
 		c.fillText( cells[0].value, 10, 50 );
 		drawCells( cells, 10, 100 );
+		drawDoor();
 	};
+	
+	function drawDoor() {
+		c.save();
+		c.fillStyle = 'black';
+		c.fillText( 'door is ' + door.state, 10, 90 );
+		c.restore();
+	};
+	
+	door = {
+		state: 'closed'
+	};
+	
+	function toggleDoor() {
+		if (door.state === 'closed') {
+			door.state = 'open';
+		}
+		else {
+			door.state = 'closed';
+		}
+	}
 	
 	renderer = {};
 	renderer.cellSpacing = 8;
@@ -203,6 +228,11 @@ function init()
 		cells[currentCellIndex].decrement();
 		draw();
 	}, false );
+	
+	document.getElementById('door_toggle_button').addEventListener( 'click', function() {
+		toggleDoor();
+		draw();
+	} );
 	
 	draw();
 }
