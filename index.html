@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>LABORA</title>
+<style>
+#program {
+	font-family: monospace;
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>LABORA</h1>
+<h2>Laboratory Applicable, BF* Operated Robot Assistant</h2>
+<header>
+
+<canvas id="maincanvas" width="640" height="480">
+No Canvas :(
+</canvas>
+
+<form>
+AWAITING PROGRAM=>
+<input type="text" id="program_input" placeholder="[->+<]" />
+<input type="button" id="load_button" value="Load" />
+<input type="button" id="step_button" value="Step" />
+</form>
+
+<form>
+TESTING INTERFACE
+<input type="button" id="prev_button" value="<" />
+<input type="button" id="next_button" value=">" />
+<input type="button" id="increment_button" value="+" />
+<input type="button" id="decrement_button" value="-" />
+</form>
+
+<script>
+function Cell( start = 3, min = 0, max = 8 )
+{
+	this.startValue = start;
+	this.value = start;
+	this.minValue = min;
+	this.maxValue = max;
+	
+	this.increment = function() {
+		this.value = Math.min( this.maxValue, this.value + 1 );
+	}
+	
+	this.decrement = function() {
+		this.value = Math.max( this.minValue, this.value - 1 );
+	}
+	
+	this.reset = function() {
+		this.value = this.startValue;
+	}
+}
+
+function init()
+{
+	var cellCount = 5;
+	cells = [];
+	for (var i = 0; i < cellCount; ++i) {
+		cells.push( new Cell() );
+	}
+	currentCellIndex = 0;
+	currentProgramIndex = 0;
+
+	var canvas       = document.getElementById('maincanvas');
+	var programInput = document.getElementById('program_input');
+	var loadButton   = document.getElementById('load_button');
+	
+	var nextButton   = document.getElementById('next_button');
+	var prevButton   = document.getElementById('prev_button');
+	var incButton    = document.getElementById('increment_button');
+	var decButton    = document.getElementById('decrement_button');
+	
+	var program = '';
+	
+	var c = canvas.getContext('2d');
+	
+	function loadProgram() {
+		program = programInput.value;
+		draw();
+		return false;
+	};
+	
+	function draw() {
+		c.fillStyle = '#FF0000';
+		c.fillRect( 0, 0, 640, 480 );
+		c.fillStyle = '#000000';
+		c.fillText( program, 10, 10 );
+		c.fillText( cells.length, 10, 30 );
+		c.fillText( cells[0].value, 10, 50 );
+		drawCells( cells, 10, 100 );
+	};
+	
+	renderer = {};
+	renderer.cellSpacing = 8;
+	renderer.cellWidth = 16;
+	renderer.cellHeight = 16;
+	renderer.cellColorHighlight = '#707070';
+	renderer.cellColorRegular = '#000000';
+	
+	renderer.valueSpacing = 2;
+	renderer.valueSize = 12;
+	renderer.valueColor = '#ffffff';
+	renderer.valueFillPadding = 2;
+	renderer.cellValueSpacing = 3;
+	
+	renderer.cellRailColor = '#505050';
+	renderer.cellRailSize = 4;
+	
+	renderer.valueRailColor = '#505050';
+	renderer.valueRailSize = 2;
+	
+	function drawCellRail( cells, x, y ) {
+		c.save();
+		c.fillStyle = renderer.cellRailColor;
+		var length = (cells.length - 1) * (renderer.cellWidth + renderer.cellSpacing);
+		c.fillRect( x, y, length, renderer.cellRailSize );
+		c.restore();
+	}
+	
+	function drawValueRail( cell, x, y ) {
+		c.save();
+		c.fillStyle = renderer.valueRailColor;
+		var length = cell.maxValue * (renderer.valueSize + renderer.valueSpacing);
+		c.fillRect( x, y, renderer.valueRailSize, length );
+		c.restore();
+	}	
+	
+	function drawCells( cells, x, y ) {
+		drawCellRail(
+				cells,
+				x + renderer.cellWidth / 2,
+				y + (renderer.cellHeight - renderer.cellRailSize) / 2 );
+		
+		c.fillStyle = renderer.cellColorRegular;
+		var cx = x;
+		for (var i = 0; i < cells.length; ++i) {
+			if (i === currentCellIndex) {
+				drawHighlightedCell( cells[i], cx, y );
+			}
+			else {
+				drawRegularCell( cells[i], cx, y );
+			}
+			cx += renderer.cellWidth + renderer.cellSpacing;
+		}
+	}
+	
+	function drawValue( cell, x, y ) {
+		c.save();
+		drawValueRail( cell, x + (renderer.valueSize - renderer.valueRailSize) / 2, y );
+		
+		var vy = y + renderer.cellValueSpacing;
+		for (var i = 0; i < cell.maxValue; ++i)	{
+			c.fillRect( x, vy, renderer.valueSize, renderer.valueSize );
+			if (i < cell.value) {
+				c.save()
+				c.fillStyle = renderer.valueColor;
+				c.fillRect(
+						x + renderer.valueFillPadding,
+						vy + renderer.valueFillPadding,
+						renderer.valueSize - 2 * renderer.valueFillPadding,
+						renderer.valueSize - 2 * renderer.valueFillPadding );
+				c.restore();
+			}
+			vy += renderer.valueSize + renderer.valueSpacing;
+		}
+		c.restore();
+	}
+		
+	function drawRegularCell( cell, x, y ) {
+		c.fillRect( x, y, renderer.cellWidth, renderer.cellHeight );
+		drawValue(
+				cell,
+				x + (renderer.cellWidth - renderer.valueSize) / 2,
+				y + renderer.cellHeight );
+	}
+	
+	function drawHighlightedCell( cell, x, y ) {
+		c.save();
+		c.fillStyle = renderer.cellColorHighlight;
+		drawRegularCell( cell, x, y );
+		c.restore();
+	}
+	
+	loadButton.addEventListener( 'click', loadProgram, false );
+	nextButton.addEventListener( 'click', function() {
+		currentCellIndex = Math.min( cells.length - 1, currentCellIndex + 1 );
+		draw()
+	}, false );
+	prevButton.addEventListener( 'click', function() {
+		currentCellIndex = Math.max( 0, currentCellIndex - 1 );
+		draw();
+	}, false );
+	incButton.addEventListener( 'click', function() {
+		cells[currentCellIndex].increment();
+		draw();
+	}, false );
+	decButton.addEventListener( 'click', function() {
+		cells[currentCellIndex].decrement();
+		draw();
+	}, false );
+	
+	draw();
+}
+
+init();
+</script>
+
+</body>
+</html>
