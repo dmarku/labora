@@ -1,0 +1,3 @@
+# LABORA
+
+LABORA is intended as a game about discovering abandoned machines, figuring out how they work and use their abilities to progress. Outside of the context of the game itself, the goal is to make the workings of a computer (or, more precisely, a _state machine_) visible and let the player modify how they operate by editing their program. For me, it will be a foray into making a game using HTML5's `<canvas>` element and JavaScript, which I've been dabbling with for a while and want to expand my knowledge in this area. As this is a hobby project and I'm occupied with a lot of other things, progress may be slow and irregular.
